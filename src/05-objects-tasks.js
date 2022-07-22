@@ -20,8 +20,10 @@
  *    console.log(r.height);      // => 20
  *    console.log(r.getArea());   // => 200
  */
-function Rectangle(/* width, height */) {
-  throw new Error('Not implemented');
+function Rectangle(width, height) {
+  this.width = width;
+  this.height = height;
+  this.getArea = () => this.width * this.height;
 }
 
 
@@ -35,8 +37,8 @@ function Rectangle(/* width, height */) {
  *    [1,2,3]   =>  '[1,2,3]'
  *    { width: 10, height : 20 } => '{"height":10,"width":20}'
  */
-function getJSON(/* obj */) {
-  throw new Error('Not implemented');
+function getJSON(obj) {
+  return JSON.stringify(obj);
 }
 
 
@@ -51,8 +53,10 @@ function getJSON(/* obj */) {
  *    const r = fromJSON(Circle.prototype, '{"radius":10}');
  *
  */
-function fromJSON(/* proto, json */) {
-  throw new Error('Not implemented');
+function fromJSON(proto, json) {
+  const obj = JSON.parse(json);
+  Object.setPrototypeOf(obj, proto);
+  return obj;
 }
 
 
@@ -111,32 +115,77 @@ function fromJSON(/* proto, json */) {
  */
 
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
+  stringValue: '',
+  useElement: false,
+  useId: false,
+  usePseudoElement: false,
+
+  throwError() {
+    return new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
   },
 
-  id(/* value */) {
-    throw new Error('Not implemented');
+  element(value) {
+    if (this.useElement === true) {
+      this.throwError();
+    } else {
+      this.stringValue += value;
+      this.useElement = true;
+    }
+    return this.returnFunc();
   },
 
-  class(/* value */) {
-    throw new Error('Not implemented');
+  id(value) {
+    if (this.useId === true) {
+      this.throwError();
+    } else {
+      this.stringValue += `#${value}`;
+      this.useId = true;
+    }
+    return this.returnFunc();
   },
 
-  attr(/* value */) {
-    throw new Error('Not implemented');
+  class(value) {
+    this.stringValue += `.${value}`;
+    return this.returnFunc();
   },
 
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
+  attr(value) {
+    this.stringValue += `[${value}]`;
+    return this.returnFunc();
   },
 
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
+  pseudoClass(value) {
+    this.stringValue += `:${value}`;
+    return this.returnFunc();
   },
 
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  pseudoElement(value) {
+    if (this.usePseudoElement) {
+      this.throwError();
+    } else {
+      this.stringValue += `::${value}`;
+      this.usePseudoElement = true;
+    }
+    return this.returnFunc();
+  },
+
+  combine(selector1, combinator, selector2) {
+    this.stringValue = `${selector1.stringify()} ${combinator} ${selector2.stringify()}`;
+    return this.returnFunc();
+  },
+
+  stringify() {
+    cssSelectorBuilder.stringValue = '';
+    cssSelectorBuilder.useElement = false;
+    cssSelectorBuilder.useId = false;
+    cssSelectorBuilder.usePseudoElement = false;
+    return this.stringValue;
+  },
+
+  returnFunc() {
+    const obj = { ...this };
+    // cssSelectorBuilder.stringValue = '';
+    return obj;
   },
 };
 
