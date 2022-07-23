@@ -114,145 +114,94 @@ function fromJSON(proto, json) {
  *  For more examples see unit tests.
  */
 
-const useObj = {
-  useElement: false,
-  useId: false,
-  usePseudoElement: false,
-};
-
-class BaseClass {
-  constructor(stringValue) {
-    this.stringValue = stringValue;
+// ///////////////////////////////////////////////////
+class MainClass {
+  constructor() {
+    this.stringValue = '';
+    this.order = ['elem', 'id', 'class', 'attr', 'psClass', 'psElem'];
+    this.onceUsed = [];
+    this.prev = null;
   }
 
-  clearUseObj() {
-    useObj.useElement = false;
-    useObj.useId = false;
-    useObj.usePseudoElement = false;
+
+  settings(cur) {
+    if (this.order.indexOf(cur) < this.order.indexOf(this.prev)) {
+      throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+    } else if (this.onceUsed.includes(cur)) {
+      throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+    }
+    if (['elem', 'id', 'psElem'].includes(cur)) {
+      this.onceUsed.push(cur);
+    }
+    this.prev = cur;
+  }
+
+  element(value) {
+    this.settings('elem');
+    this.stringValue += value;
+    return this;
+  }
+
+  id(value) {
+    this.settings('id');
+    this.stringValue += `#${value}`;
+    return this;
+  }
+
+  class(value) {
+    this.settings('class');
+    this.stringValue += `.${value}`;
+    return this;
+  }
+
+  attr(value) {
+    this.settings('attr');
+    this.stringValue += `[${value}]`;
+    return this;
+  }
+
+  pseudoClass(value) {
+    this.settings('psClass');
+    this.stringValue += `:${value}`;
+    return this;
+  }
+
+  pseudoElement(value) {
+    this.settings('psElem');
+    this.stringValue += `::${value}`;
+    return this;
   }
 
   stringify() {
-    this.clearUseObj();
     return this.stringValue;
   }
-
-  pseudoElement() {
-    const tmp = useObj.usePseudoElement;
-    this.clearUseObj();
-
-    if (tmp) {
-      throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
-    } else {
-      throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
-    }
-  }
-
-  pseudoClass() {
-    throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
-  }
-
-  attr() {
-    throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
-  }
-
-  class() {
-    throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
-  }
-
-  id() {
-    const tmp = useObj.useId;
-    this.clearUseObj();
-
-    if (tmp) {
-      throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
-    } else {
-      throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
-    }
-  }
-
-  element() {
-    const tmp = useObj.useElement;
-    this.clearUseObj();
-
-    if (tmp) {
-      throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
-    } else {
-      throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
-    }
-  }
 }
 
-class PseudoElementClass extends BaseClass {
-  pseudoElement(value) {
-    this.stringValue += `::${value}`;
-    useObj.usePseudoElement = true;
-    return new BaseClass(this.stringValue);
-  }
-}
-
-class PseudoClassClass extends PseudoElementClass {
-  pseudoClass(value) {
-    this.stringValue += `:${value}`;
-    return new PseudoClassClass(this.stringValue);
-  }
-}
-
-class AttributeClass extends PseudoClassClass {
-  attr(value) {
-    this.stringValue += `[${value}]`;
-    return new AttributeClass(this.stringValue);
-  }
-}
-
-class ClassClass extends AttributeClass {
-  class(value) {
-    this.stringValue += `.${value}`;
-    return new ClassClass(this.stringValue);
-  }
-}
-
-class IdClass extends ClassClass {
-  id(value) {
-    this.stringValue += `#${value}`;
-    useObj.useId = true;
-    return new ClassClass(this.stringValue);
-  }
-}
-
-class ElementClass extends IdClass {
-  element(value) {
-    this.stringValue += value;
-    useObj.useElement = true;
-    return new IdClass(this.stringValue);
-  }
-}
-
-// ///////////////////////////////////////////////////
 
 const cssSelectorBuilder = {
 
   element(value) {
-    return new ElementClass('').element(value);
+    return new MainClass().element(value);
   },
 
   id(value) {
-    return new IdClass('').id(value);
+    return new MainClass().id(value);
   },
 
   class(value) {
-    return new ClassClass('').class(value);
+    return new MainClass().class(value);
   },
 
   attr(value) {
-    return new AttributeClass('').attr(value);
+    return new MainClass().attr(value);
   },
 
   pseudoClass(value) {
-    return new PseudoClassClass('').pseudoClass(value);
+    return new MainClass().pseudoClass(value);
   },
 
   pseudoElement(value) {
-    return new PseudoElementClass('').pseudoElement(value);
+    return new MainClass().pseudoElement(value);
   },
 
   combine(selector1, combinator, selector2) {
