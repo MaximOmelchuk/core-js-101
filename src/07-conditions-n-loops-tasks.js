@@ -507,27 +507,6 @@ function evaluateTicTacToePosition(position) {
   ) return position[1][1];
 
   return undefined;
-
-
-  // const str = position.flat().map((x) => (x === undefined ? ' ' : x)).join('');
-  // if (
-  //   /XXX$/.test(str)
-  //   || /^XXX/.test(str)
-  //   || /^...XXX/.test(str)
-  //   || /X..X..X/.test(str)
-  //   || /X...X...X/.test(str)
-  //   || /X.X.X/.test(str)
-  // ) return 'X';
-
-  // if (
-  //   /000$/.test(str)
-  //   || /^000/.test(str)
-  //   || /^...000/.test(str) || /0..0..0/.test(str)
-  //   || /0...0...0/.test(str)
-  //   || /0.0.0/.test(str)
-  // ) return '0';
-
-  // return undefined;
 }
 
 
